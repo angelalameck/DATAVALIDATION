@@ -1,0 +1,7 @@
+branch_code,error_type,flagged_count
+001,Duplicate Report ID,80
+001,Invalid Denomination,79
+001,Missing Date,22
+001,Negative Amount,69
+001,Suspicious High Issued Amount,23
+001,Suspicious High Returned Amount,10
