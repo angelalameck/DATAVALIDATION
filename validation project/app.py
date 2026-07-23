@@ -19,7 +19,7 @@ LIGHT_BG = "#F4F7FC"
 SIDEBAR_BG = "#E1E8F0"         
 TEXT_DARK = "#1E293B"          
 
-# 3. Comprehensive CSS Injection to fix invisible text and formatting issues
+# 3. Comprehensive CSS Injection — EVERY text element forced dark and visible
 st.markdown(
     f"""
     <style>
@@ -34,13 +34,44 @@ st.markdown(
         border-right: 1px solid #CBD5E1;
     }}
     
-    /* Global Typography Structure */
-    h1, h2, h3, h4, h5, h6 {{
+    /* Headings, Titles, Subheadings */
+    h1, h2, h3, h4, h5, h6, 
+    .stHeadingContainer *, 
+    [data-testid="stMarkdownContainer"] h1,
+    [data-testid="stMarkdownContainer"] h2,
+    [data-testid="stMarkdownContainer"] h3 {{
         color: {PRIMARY_NAVY} !important;
         font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
     }}
-    
-    /* Sidebar Text Fixes */
+
+    /* FORCE ALL Paragraphs, Bold Text (**text**), Labels, and Text Elements to be Dark Slate */
+    p, span, label, strong, b,
+    [data-testid="stMarkdownContainer"] *,
+    [data-testid="stText"] * {{
+        color: {TEXT_DARK} !important;
+    }}
+
+    /* FORCE Captions and Subtext to be clearly visible */
+    [data-testid="stCaptionContainer"] *,
+    .stCaption * {{
+        color: #334155 !important;
+    }}
+
+    /* === FIX: Tab Buttons Visibility (Upload & Validate, History, Branch Tabs) === */
+    button[data-baseweb="tab"] {{
+        background-color: transparent !important;
+        opacity: 1 !important;
+    }}
+    button[data-baseweb="tab"] * {{
+        color: {TEXT_DARK} !important;
+        font-weight: 600 !important;
+    }}
+    button[data-baseweb="tab"][aria-selected="true"] * {{
+        color: {PRIMARY_NAVY} !important;
+        font-weight: bold !important;
+    }}
+
+    /* === FIX: Sidebar Text Elements === */
     [data-testid="stSidebar"] * {{
         color: {TEXT_DARK} !important;
     }}
@@ -48,33 +79,16 @@ st.markdown(
         color: {TEXT_DARK} !important;
     }}
 
-    /* === TAB BUTTONS FIX: Visible without hovering === */
-    button[data-baseweb="tab"] {{
-        color: {TEXT_DARK} !important;
-        font-weight: 600 !important;
-        background-color: transparent !important;
-        opacity: 1 !important;
-    }}
-    button[data-baseweb="tab"][aria-selected="true"] {{
-        color: {PRIMARY_NAVY} !important;
-        border-bottom: 3px solid {PRIMARY_NAVY} !important;
-    }}
-
-    /* === PASSWORD/TEXT INPUT FIX === */
+    /* === FIX: Password & Text Input Fields === */
     div[data-testid="stTextInput"] input {{
         color: #000000 !important;
         background-color: #FFFFFF !important;
         border: 1px solid #CBD5E1 !important;
     }}
-    div[data-testid="stTextInput"] label p {{
-        color: {TEXT_DARK} !important;
-        font-weight: bold;
-    }}
 
-    /* === ALERT & NOTIFICATION BOXES FIX === */
+    /* === FIX: Alert & Notification Boxes === */
     [data-testid="stNotification"] * {{
         color: #000000 !important;
-        font-weight: 500 !important;
     }}
     </style>
     """,
@@ -146,8 +160,10 @@ def render_branch_page(label, branch_code):
             all_flags = pd.concat([errors, anomalies], ignore_index=True)
             report = generate_summary_report(all_flags)
             log = build_error_log(df)
+
             st.write(f"**{len(df)} records checked — {len(all_flags)} flagged entries found "
                      f"(validation rules + anomaly detection).**")
+
             chart_col1, chart_col2 = st.columns(2)
             with chart_col1:
                 st.write("**Error Breakdown**")
@@ -155,6 +171,7 @@ def render_branch_page(label, branch_code):
                     st.bar_chart(all_flags["error_type"].value_counts())
                 else:
                     st.caption("No errors found.")
+
             with chart_col2:
                 st.write("**Monthly Submission Volume**")
                 trend = df_sorted.copy()
@@ -164,6 +181,7 @@ def render_branch_page(label, branch_code):
             st.subheader(f"{branch_code} Summary Report")
             st.caption("Error type and how many times it occurred.")
             st.dataframe(report, use_container_width=True)
+
             st.subheader(f"{branch_code} Detailed Error Log")
             st.caption(
                 "One row per flagged issue — shows the exact row number, "
@@ -171,6 +189,7 @@ def render_branch_page(label, branch_code):
                 "so the DQO can find and fix it directly in the source file."
             )
             st.dataframe(log, use_container_width=True)
+
             dl_col1, dl_col2 = st.columns(2)
             with dl_col1:
                 st.download_button(
@@ -184,9 +203,11 @@ def render_branch_page(label, branch_code):
                     log.to_csv(index=False),
                     f"{branch_code}_error_log.csv",
                 )
+
             save_branch_report(branch_code, report)
             save_to_history(label, report, "summary_report")
             save_to_history(label, log, "error_log")
+
     with tab_history:
         st.write(f"Past uploads and reports for **{label}**:")
         show_history(label)
