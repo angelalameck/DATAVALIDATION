@@ -19,7 +19,7 @@ LIGHT_BG = "#F4F7FC"
 SIDEBAR_BG = "#E1E8F0"         
 TEXT_DARK = "#1E293B"          
 
-# 3. Comprehensive CSS Injection — EVERY text element forced dark and visible
+# 3. Comprehensive CSS Injection — Fixes invisible button labels & dropdowns
 st.markdown(
     f"""
     <style>
@@ -71,10 +71,37 @@ st.markdown(
         font-weight: bold !important;
     }}
 
-    /* === FIX: Sidebar Text Elements === */
-    [data-testid="stSidebar"] * {{
-        color: {TEXT_DARK} !important;
+    /* === FIX: Download Buttons and Action Buttons (History & Download files) === */
+    div.stButton > button, 
+    div.stDownloadButton > button,
+    [data-testid="stBaseButton-secondary"] {{
+        background-color: #FFFFFF !important;
+        color: {PRIMARY_NAVY} !important;
+        border: 1px solid #CBD5E1 !important;
+        font-weight: 600 !important;
+        box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1) !important;
     }}
+
+    div.stButton > button *, 
+    div.stDownloadButton > button *,
+    [data-testid="stBaseButton-secondary"] * {{
+        color: {PRIMARY_NAVY} !important;
+    }}
+
+    /* Hover effect for buttons */
+    div.stButton > button:hover, 
+    div.stDownloadButton > button:hover {{
+        background-color: #E2E8F0 !important;
+        border-color: {PRIMARY_NAVY} !important;
+    }}
+
+    /* === FIX: Sidebar Selectbox Dropdown Box === */
+    div[data-baseweb="select"] > div {{
+        background-color: #FFFFFF !important;
+        color: {TEXT_DARK} !important;
+        border: 1px solid #CBD5E1 !important;
+    }}
+
     div[data-baseweb="select"] * {{
         color: {TEXT_DARK} !important;
     }}
