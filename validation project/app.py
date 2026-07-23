@@ -7,23 +7,78 @@ from anomaly_detection import run_anomaly_detection
 from summary_report import generate_summary_report
 from error_log import build_error_log
 
+# 1. Page Configuration
 st.set_page_config(
-    page_title="Currency Report Validation",
+    page_title="Bank Currency Report Validation System",
     layout="wide",
 )
-PRIMARY = "#0B3D62"
-LIGHT_BG = "#F0F4F8"
 
+# 2. Color Palette Variables (Corporate & High-Visibility)
+PRIMARY_NAVY = "#0B3D62"       
+LIGHT_BG = "#F4F7FC"           
+SIDEBAR_BG = "#E1E8F0"         
+TEXT_DARK = "#1E293B"          
+
+# 3. Comprehensive CSS Injection to fix invisible text and formatting issues
 st.markdown(
     f"""
     <style>
-        .main {{ background-color: #FFFFFF; }}
-        h1, h2, h3 {{ color: {PRIMARY}; }}
-        div[data-testid="stSidebar"] {{ background-color: {PRIMARY}; }}
-        div[data-testid="stSidebar"] * {{ color: white !important; }}
+    /* Main Canvas Background */
+    [data-testid="stAppViewContainer"] {{
+        background-color: {LIGHT_BG};
+    }}
+    
+    /* Sidebar Layout & Styling */
+    [data-testid="stSidebar"] {{
+        background-color: {SIDEBAR_BG} !important;
+        border-right: 1px solid #CBD5E1;
+    }}
+    
+    /* Global Typography Structure */
+    h1, h2, h3, h4, h5, h6 {{
+        color: {PRIMARY_NAVY} !important;
+        font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+    }}
+    
+    /* Sidebar Text Fixes */
+    [data-testid="stSidebar"] * {{
+        color: {TEXT_DARK} !important;
+    }}
+    div[data-baseweb="select"] * {{
+        color: {TEXT_DARK} !important;
+    }}
+
+    /* === TAB BUTTONS FIX: Visible without hovering === */
+    button[data-baseweb="tab"] {{
+        color: {TEXT_DARK} !important;
+        font-weight: 600 !important;
+        background-color: transparent !important;
+        opacity: 1 !important;
+    }}
+    button[data-baseweb="tab"][aria-selected="true"] {{
+        color: {PRIMARY_NAVY} !important;
+        border-bottom: 3px solid {PRIMARY_NAVY} !important;
+    }}
+
+    /* === PASSWORD/TEXT INPUT FIX === */
+    div[data-testid="stTextInput"] input {{
+        color: #000000 !important;
+        background-color: #FFFFFF !important;
+        border: 1px solid #CBD5E1 !important;
+    }}
+    div[data-testid="stTextInput"] label p {{
+        color: {TEXT_DARK} !important;
+        font-weight: bold;
+    }}
+
+    /* === ALERT & NOTIFICATION BOXES FIX === */
+    [data-testid="stNotification"] * {{
+        color: #000000 !important;
+        font-weight: 500 !important;
+    }}
     </style>
     """,
-    unsafe_allow_html=True,
+    unsafe_allow_html=True
 )
 
 HISTORY_DIR = "history"
@@ -91,10 +146,8 @@ def render_branch_page(label, branch_code):
             all_flags = pd.concat([errors, anomalies], ignore_index=True)
             report = generate_summary_report(all_flags)
             log = build_error_log(df)
-
             st.write(f"**{len(df)} records checked — {len(all_flags)} flagged entries found "
                      f"(validation rules + anomaly detection).**")
-
             chart_col1, chart_col2 = st.columns(2)
             with chart_col1:
                 st.write("**Error Breakdown**")
@@ -102,7 +155,6 @@ def render_branch_page(label, branch_code):
                     st.bar_chart(all_flags["error_type"].value_counts())
                 else:
                     st.caption("No errors found.")
-
             with chart_col2:
                 st.write("**Monthly Submission Volume**")
                 trend = df_sorted.copy()
@@ -112,7 +164,6 @@ def render_branch_page(label, branch_code):
             st.subheader(f"{branch_code} Summary Report")
             st.caption("Error type and how many times it occurred.")
             st.dataframe(report, use_container_width=True)
-
             st.subheader(f"{branch_code} Detailed Error Log")
             st.caption(
                 "One row per flagged issue — shows the exact row number, "
@@ -120,7 +171,6 @@ def render_branch_page(label, branch_code):
                 "so the DQO can find and fix it directly in the source file."
             )
             st.dataframe(log, use_container_width=True)
-
             dl_col1, dl_col2 = st.columns(2)
             with dl_col1:
                 st.download_button(
@@ -134,22 +184,19 @@ def render_branch_page(label, branch_code):
                     log.to_csv(index=False),
                     f"{branch_code}_error_log.csv",
                 )
-
             save_branch_report(branch_code, report)
             save_to_history(label, report, "summary_report")
             save_to_history(label, log, "error_log")
-
     with tab_history:
         st.write(f"Past uploads and reports for **{label}**:")
         show_history(label)
 
 
 def render_hq_page():
-    st.header("HQ Dashboard  Admin Access")
+    st.header("HQ Dashboard — Admin Access")
     if "hq_authenticated" not in st.session_state:
         st.session_state.hq_authenticated = False
     if not st.session_state.hq_authenticated:
-        st.warning("This page is restricted to HQ Data Quality Officers.")
         pw = st.text_input("Enter HQ admin password", type="password")
         if st.button("Login"):
             if pw == HQ_PASSWORD:
@@ -161,7 +208,7 @@ def render_hq_page():
 
     col_logout, _ = st.columns([1, 5])
     with col_logout:
-        if st.button("🔓 Logout"):
+        if st.button("Logout"):
             st.session_state.hq_authenticated = False
             st.rerun()
 
@@ -180,7 +227,7 @@ def render_hq_page():
         st.info("No branch reports are available yet. Reports will appear here once a branch uploads and validates its data.")
         return
 
-    st.subheader(" All Branch Reports")
+    st.subheader("All Branch Reports")
 
     tabs = st.tabs(list(branch_reports.keys()))
     for tab, (code, report) in zip(tabs, branch_reports.items()):
@@ -208,10 +255,14 @@ def render_hq_page():
         "all_branches_combined_view.csv",
     )
 
-st.sidebar.title("Bank Currency Validation")
-st.sidebar.caption("Currency Report Validation System")
+# 4. App Headers and Navigation Controls
+st.sidebar.title("Bank Currency Report Validation System")
+st.sidebar.caption("Secured Data Quality Dashboard")
+
 page = st.sidebar.selectbox("Select Location", ["DSM Branch", "MWZ Branch", "DDM Branch", "HQ"])
+
 st.title("Bank Currency Report Validation System")
+
 if page in BRANCH_CODES:
     render_branch_page(page, BRANCH_CODES[page])
 elif page == "HQ":
